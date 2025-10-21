@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'url_service.dart';
 import 'storage_service.dart';
+import '../core/errors.dart';
 
 class DeepLinkService {
   static const MethodChannel _channel = MethodChannel('qr_redirector/deep_link');
@@ -15,7 +16,7 @@ class DeepLinkService {
         await _handleDeepLink(initialLink);
       }
     } catch (e) {
-      // Помилка отримання початкового deep link
+      throw DeepLinkError('Не вдалося ініціалізувати deep link сервіс', e.toString());
     }
 
     // Для спрощення не реалізуємо stream - тільки початковий link
@@ -30,10 +31,18 @@ class DeepLinkService {
       final String? finalUrl = await URLService.processQRCode(link, projects);
       
       if (finalUrl != null) {
-        await URLService.openUrl(finalUrl);
+        final success = await URLService.openUrl(finalUrl);
+        if (!success) {
+          throw DeepLinkError('Не вдалося відкрити URL: $finalUrl');
+        }
+      } else {
+        throw DeepLinkError('Не знайдено відповідний проєкт для QR коду: $link');
       }
     } catch (e) {
-      // Помилка обробки deep link
+      if (e is AppError) {
+        rethrow;
+      }
+      throw DeepLinkError('Помилка обробки deep link: $link', e.toString());
     }
   }
 

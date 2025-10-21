@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/deep_link_service.dart';
 import 'screens/settings_screen.dart';
+import 'core/errors.dart';
 
 void main() {
   runApp(const QRRedirectorApp());
@@ -45,7 +46,15 @@ class _AppInitializerState extends State<AppInitializer> {
         _isInitialized = true;
       });
     } catch (e) {
-      print('Помилка ініціалізації: $e');
+      // Показуємо помилку користувачу, але все одно запускаємо додаток
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Помилка ініціалізації: ${e is AppError ? e.message : e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       setState(() {
         _isInitialized = true;
       });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/url_service.dart';
+import '../core/errors.dart';
 
 class ProjectEditScreen extends StatefulWidget {
   final Project project;
@@ -39,19 +40,24 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
   }
 
   Future<void> _testProject() async {
-    if (_regexController.text.isEmpty || _urlController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Заповніть regex та URL шаблон')),
-      );
-      return;
-    }
-
     setState(() {
       _isTesting = true;
       _testResult = null;
     });
 
     try {
+      // Валідуємо regex
+      final regexError = URLService.validateRegex(_regexController.text);
+      if (regexError != null) {
+        throw regexError;
+      }
+
+      // Валідуємо URL шаблон
+      final urlError = URLService.validateUrlTemplate(_urlController.text);
+      if (urlError != null) {
+        throw urlError;
+      }
+
       final testProject = Project(
         id: widget.project.id,
         name: _nameController.text,
@@ -75,8 +81,16 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
       setState(() {
         _isTesting = false;
       });
+      
+      String errorMessage = 'Помилка тестування';
+      if (e is ValidationError) {
+        errorMessage = e.message;
+      } else {
+        errorMessage = 'Помилка тестування: $e';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Помилка тестування: $e')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -89,16 +103,20 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
       return;
     }
 
-    if (_regexController.text.isEmpty) {
+    // Валідуємо regex
+    final regexError = URLService.validateRegex(_regexController.text);
+    if (regexError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Введіть regex')),
+        SnackBar(content: Text(regexError.message)),
       );
       return;
     }
 
-    if (_urlController.text.isEmpty) {
+    // Валідуємо URL шаблон
+    final urlError = URLService.validateUrlTemplate(_urlController.text);
+    if (urlError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Введіть URL шаблон')),
+        SnackBar(content: Text(urlError.message)),
       );
       return;
     }
