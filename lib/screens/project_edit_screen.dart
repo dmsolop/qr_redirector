@@ -1,0 +1,222 @@
+import 'package:flutter/material.dart';
+import '../models/project.dart';
+import '../services/url_service.dart';
+
+class ProjectEditScreen extends StatefulWidget {
+  final Project project;
+
+  const ProjectEditScreen({Key? key, required this.project}) : super(key: key);
+
+  @override
+  State<ProjectEditScreen> createState() => _ProjectEditScreenState();
+}
+
+class _ProjectEditScreenState extends State<ProjectEditScreen> {
+  late TextEditingController _nameController;
+  late TextEditingController _regexController;
+  late TextEditingController _urlController;
+  late TextEditingController _testController;
+  
+  String? _testResult;
+  bool _isTesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.project.name);
+    _regexController = TextEditingController(text: widget.project.regex);
+    _urlController = TextEditingController(text: widget.project.urlTemplate);
+    _testController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _regexController.dispose();
+    _urlController.dispose();
+    _testController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testProject() async {
+    if (_regexController.text.isEmpty || _urlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Заповніть regex та URL шаблон')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isTesting = true;
+      _testResult = null;
+    });
+
+    try {
+      final testProject = Project(
+        id: widget.project.id,
+        name: _nameController.text,
+        regex: _regexController.text,
+        urlTemplate: _urlController.text,
+      );
+
+      final result = await URLService.testProject(testProject, _testController.text);
+      
+      setState(() {
+        _testResult = result;
+        _isTesting = false;
+      });
+
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Regex не співпадає з тестовим QR кодом')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isTesting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Помилка тестування: $e')),
+      );
+    }
+  }
+
+  void _saveProject() {
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Введіть назву проєкту')),
+      );
+      return;
+    }
+
+    if (_regexController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Введіть regex')),
+      );
+      return;
+    }
+
+    if (_urlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Введіть URL шаблон')),
+      );
+      return;
+    }
+
+    final updatedProject = Project(
+      id: widget.project.id,
+      name: _nameController.text,
+      regex: _regexController.text,
+      urlTemplate: _urlController.text,
+    );
+
+    Navigator.pop(context, updatedProject);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.project.id == 0 ? 'Новий проєкт' : 'Редагування проєкту'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          TextButton(
+            onPressed: _saveProject,
+            child: const Text('Зберегти'),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Назва проєкту',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _regexController,
+              decoration: const InputDecoration(
+                labelText: 'Regex',
+                hintText: '^reich://1(\\d+)\$',
+                border: OutlineInputBorder(),
+                helperText: 'Регулярний вираз для визначення проєкту',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _urlController,
+              decoration: const InputDecoration(
+                labelText: 'URL шаблон',
+                hintText: 'example.com/project/{key}',
+                border: OutlineInputBorder(),
+                helperText: 'Використовуйте {key} для підстановки',
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+            const Text(
+              'Тестування',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _testController,
+              decoration: const InputDecoration(
+                labelText: 'Тестовий QR код',
+                hintText: 'reich://1234',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _isTesting ? null : _testProject,
+              child: _isTesting
+                  ? const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Тестування...'),
+                      ],
+                    )
+                  : const Text('Тестувати'),
+            ),
+            if (_testResult != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  border: Border.all(color: Colors.green.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Результат:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(_testResult!),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
