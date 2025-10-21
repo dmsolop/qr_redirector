@@ -33,6 +33,7 @@ class AppInitializer extends StatefulWidget {
 
 class _AppInitializerState extends State<AppInitializer> {
   bool _isInitialized = false;
+  bool _showSettings = false;
   StreamSubscription<String>? _deepLinkSubscription;
 
   @override
@@ -44,33 +45,22 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initializeApp() async {
     try {
       await DeepLinkService.initialize();
-      
+
       // Підписуємося на runtime deep links
       _deepLinkSubscription = DeepLinkService.linkStream.listen(
         (link) {
           // Deep links автоматично обробляються в DeepLinkService
-          // Тут можна додати додаткову логіку, якщо потрібно
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Оброблено deep link: $link'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
+          // У background режимі не показуємо UI повідомлення
+          // ignore: avoid_print
+          print('[App] Deep link processed in background: $link');
         },
         onError: (error) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Помилка обробки deep link: $error'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+          // Логуємо помилки, але не показуємо UI у background режимі
+          // ignore: avoid_print
+          print('[App] Deep link error: $error');
         },
       );
-      
+
       setState(() {
         _isInitialized = true;
       });
@@ -114,6 +104,57 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    return const SettingsScreen();
+    // Якщо не показуємо налаштування, показуємо background екран
+    if (!_showSettings) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.qr_code_scanner,
+                size: 64,
+                color: Colors.blue,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'QR Редіректор',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Додаток працює у фоні',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showSettings = true;
+                  });
+                },
+                icon: const Icon(Icons.settings),
+                label: const Text('Налаштування'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Показуємо налаштування
+    return SettingsScreen(
+      onBack: () {
+        setState(() {
+          _showSettings = false;
+        });
+      },
+    );
   }
 }

@@ -23,7 +23,7 @@ class DeepLinkService {
 
       // Налаштовуємо обробку runtime deep links
       _channel.setMethodCallHandler(_handleMethodCall);
-      
+
       _log('Deep link service initialized successfully');
     } catch (e) {
       _log('Error initializing deep link service: $e');
@@ -48,14 +48,14 @@ class DeepLinkService {
   static Future<void> _handleDeepLink(String link) async {
     try {
       _log('Processing deep link: $link');
-      
+
       // Отримуємо список проєктів
       final projects = await StorageService.getProjects();
       _log('Loaded ${projects.length} projects');
-      
+
       // Обробляємо QR код
       final String? finalUrl = await URLService.processQRCode(link, projects);
-      
+
       if (finalUrl != null) {
         _log('Found matching project, final URL: $finalUrl');
         final success = await URLService.openUrl(finalUrl);
@@ -81,7 +81,7 @@ class DeepLinkService {
   static void _log(String message) {
     // В production можна замінити на proper logging
     // ignore: avoid_print
-    print('[DeepLinkService] $message');
+    print('[DeepLinkService] ${DateTime.now().toIso8601String()} - $message');
   }
 
   static void dispose() {
