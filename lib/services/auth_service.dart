@@ -78,6 +78,34 @@ class AuthService {
     return savedPin == enteredPin;
   }
 
+  /// Верифікація основного пароля телефона (при першому запуску)
+  static Future<bool> verifyDeviceCredentials() async {
+    try {
+      final isAvailable = await isBiometricAvailable();
+      if (!isAvailable) {
+        // Якщо біометрія недоступна, використовуємо PIN
+        return await _localAuth.authenticate(
+          localizedReason: 'Підтвердіть свою особу для налаштування додатку',
+          options: const AuthenticationOptions(
+            biometricOnly: false,
+            stickyAuth: true,
+          ),
+        );
+      }
+
+      // Використовуємо біометрію або PIN
+      return await _localAuth.authenticate(
+        localizedReason: 'Підтвердіть свою особу для налаштування додатку',
+        options: const AuthenticationOptions(
+          biometricOnly: false,
+          stickyAuth: true,
+        ),
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
   static Future<bool> authenticate() async {
     final authType = await getAuthType();
     
@@ -88,7 +116,7 @@ class AuthService {
         // PIN буде введений через UI
         return false;
       default:
-        return true; // Без аутентифікації
+        return false; // Завжди потрібна автентифікація
     }
   }
 }

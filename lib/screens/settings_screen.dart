@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/storage_service.dart';
-import '../services/auth_service.dart';
 import 'project_list_screen.dart';
 import 'auth_screen.dart';
 
@@ -33,19 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _navigateToProjects() async {
-    final authEnabled = await AuthService.isAuthEnabled();
-    
-    if (authEnabled) {
-      final authenticated = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthScreen()),
-      );
-      
-      if (authenticated != true) {
-        return; // Аутентифікація не пройшла
-      }
-    }
-
+    // Налаштування проєктів доступні без додаткової автентифікації
+    // (автентифікація вже пройшла при відкритті налаштувань)
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -92,13 +80,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: const Text('Аутентифікація'),
                       subtitle: const Text('Налаштування безпеки'),
                       trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const AuthScreen(),
                           ),
                         );
+                        
+                        if (result == true) {
+                          // Оновлюємо інформацію про проєкти після зміни налаштувань
+                          _loadProjects();
+                        }
                       },
                     ),
                   ),

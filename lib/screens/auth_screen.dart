@@ -60,9 +60,6 @@ class _AuthScreenState extends State<AuthScreen> {
         }
         authenticated = await AuthService.authenticateWithPin(_pinController.text);
         break;
-      case 'none':
-        authenticated = true;
-        break;
     }
 
     if (authenticated) {
@@ -90,7 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     await AuthService.setAuthType(_selectedAuthType!);
-    await AuthService.setAuthEnabled(_selectedAuthType != 'none');
+    await AuthService.setAuthEnabled(true); // Завжди вмикаємо автентифікацію
 
     if (_selectedAuthType == 'pin') {
       await AuthService.setPin(_pinController.text);
@@ -124,17 +121,6 @@ class _AuthScreenState extends State<AuthScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            RadioListTile<String>(
-              title: const Text('Без аутентифікації'),
-              subtitle: const Text('Доступ без захисту'),
-              value: 'none',
-              groupValue: _selectedAuthType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedAuthType = value;
-                });
-              },
-            ),
             if (_isBiometricAvailable)
               RadioListTile<String>(
                 title: const Text('Біометрія'),

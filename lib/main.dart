@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'services/deep_link_service.dart';
+import 'services/auth_service.dart';
 import 'screens/settings_screen.dart';
+import 'screens/auth_screen.dart';
 import 'core/errors.dart';
 
 void main() {
@@ -80,6 +82,37 @@ class _AppInitializerState extends State<AppInitializer> {
     }
   }
 
+  Future<void> _openSettings() async {
+    // Перевіряємо, чи налаштована автентифікація
+    final authEnabled = await AuthService.isAuthEnabled();
+    
+    if (authEnabled) {
+      // Якщо автентифікація налаштована, показуємо екран автентифікації
+      final authenticated = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
+      
+      if (authenticated == true) {
+        setState(() {
+          _showSettings = true;
+        });
+      }
+    } else {
+      // Якщо автентифікація не налаштована, показуємо екран налаштування автентифікації
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
+      
+      if (result == true) {
+        setState(() {
+          _showSettings = true;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _deepLinkSubscription?.cancel();
@@ -134,11 +167,7 @@ class _AppInitializerState extends State<AppInitializer> {
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showSettings = true;
-                  });
-                },
+                onPressed: _openSettings,
                 icon: const Icon(Icons.settings),
                 label: const Text('Налаштування'),
               ),
