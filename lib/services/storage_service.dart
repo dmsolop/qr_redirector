@@ -11,10 +11,8 @@ class StorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final projectsJson = prefs.getStringList(_projectsKey) ?? [];
-      
-      return projectsJson
-          .map((json) => Project.fromJson(jsonDecode(json)))
-          .toList();
+
+      return projectsJson.map((json) => Project.fromJson(jsonDecode(json))).toList();
     } catch (e) {
       throw StorageError('Не вдалося завантажити проєкти', e.toString());
     }
@@ -23,10 +21,8 @@ class StorageService {
   static Future<void> saveProjects(List<Project> projects) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final projectsJson = projects
-          .map((project) => jsonEncode(project.toJson()))
-          .toList();
-      
+      final projectsJson = projects.map((project) => jsonEncode(project.toJson())).toList();
+
       await prefs.setStringList(_projectsKey, projectsJson);
     } catch (e) {
       throw StorageError('Не вдалося зберегти проєкти', e.toString());
@@ -69,11 +65,11 @@ class StorageService {
       final projects = await getProjects();
       final initialLength = projects.length;
       projects.removeWhere((p) => p.id == projectId);
-      
+
       if (projects.length == initialLength) {
         throw StorageError('Проєкт з ID $projectId не знайдено');
       }
-      
+
       await saveProjects(projects);
     } catch (e) {
       if (e is StorageError) {

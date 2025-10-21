@@ -26,10 +26,10 @@ class DeepLinkService {
     try {
       // Отримуємо список проєктів
       final projects = await StorageService.getProjects();
-      
+
       // Обробляємо QR код
       final String? finalUrl = await URLService.processQRCode(link, projects);
-      
+
       if (finalUrl != null) {
         final success = await URLService.openUrl(finalUrl);
         if (!success) {
