@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'services/deep_link_service.dart';
 import 'services/auth_service.dart';
 import 'screens/settings_screen.dart';
-import 'screens/auth_screen.dart';
 import 'core/errors.dart';
 
 void main() {
@@ -83,33 +82,34 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _openSettings() async {
-    // Перевіряємо, чи налаштована автентифікація
-    final authEnabled = await AuthService.isAuthEnabled();
-    
-    if (authEnabled) {
-      // Якщо автентифікація налаштована, показуємо екран автентифікації
-      final authenticated = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthScreen()),
-      );
-      
-      if (authenticated == true) {
-        setState(() {
-          _showSettings = true;
-        });
+    // Спочатку завжди запитуємо пароль телефона для верифікації власника
+    // ignore: avoid_print
+    print('[App] Starting device credentials verification...');
+
+    final deviceVerified = await AuthService.verifyDeviceCredentials();
+
+    // ignore: avoid_print
+    print('[App] Device verification result: $deviceVerified');
+
+    if (!deviceVerified) {
+      if (mounted) {
+        // Показуємо більш детальне повідомлення
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Верифікація не пройшла. Перевірте налаштування біометрії/блокування екрану.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
       }
-    } else {
-      // Якщо автентифікація не налаштована, показуємо екран налаштування автентифікації
-      final result = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthScreen()),
-      );
-      
-      if (result == true) {
-        setState(() {
-          _showSettings = true;
-        });
-      }
+      return;
+    }
+
+    // Після успішної верифікації пристрою одразу показуємо налаштування
+    if (mounted) {
+      setState(() {
+        _showSettings = true;
+      });
     }
   }
 

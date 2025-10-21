@@ -45,6 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Цей додаток використовує Face ID для безпечної автентифікації</string>
+	<key>NSBiometricUsageDescription</key>
+	<string>Цей додаток використовує біометричну автентифікацію для безпеки</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

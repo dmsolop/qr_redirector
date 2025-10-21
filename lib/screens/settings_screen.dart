@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/storage_service.dart';
 import 'project_list_screen.dart';
-import 'auth_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onBack;
@@ -32,8 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _navigateToProjects() async {
-    // Налаштування проєктів доступні без додаткової автентифікації
-    // (автентифікація вже пройшла при відкритті налаштувань)
+    // Налаштування проєктів доступні після верифікації пристрою
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -71,28 +69,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: Text('${_projects.length} проєктів'),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onTap: _navigateToProjects,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.security),
-                      title: const Text('Аутентифікація'),
-                      subtitle: const Text('Налаштування безпеки'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () async {
-                        final result = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AuthScreen(),
-                          ),
-                        );
-                        
-                        if (result == true) {
-                          // Оновлюємо інформацію про проєкти після зміни налаштувань
-                          _loadProjects();
-                        }
-                      },
                     ),
                   ),
                   const SizedBox(height: 16),
