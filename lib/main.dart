@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'services/deep_link_service.dart';
 import 'screens/settings_screen.dart';
@@ -32,6 +33,7 @@ class AppInitializer extends StatefulWidget {
 
 class _AppInitializerState extends State<AppInitializer> {
   bool _isInitialized = false;
+  StreamSubscription<String>? _deepLinkSubscription;
 
   @override
   void initState() {
@@ -42,6 +44,33 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initializeApp() async {
     try {
       await DeepLinkService.initialize();
+      
+      // Підписуємося на runtime deep links
+      _deepLinkSubscription = DeepLinkService.linkStream.listen(
+        (link) {
+          // Deep links автоматично обробляються в DeepLinkService
+          // Тут можна додати додаткову логіку, якщо потрібно
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Оброблено deep link: $link'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        onError: (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Помилка обробки deep link: $error'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+      );
+      
       setState(() {
         _isInitialized = true;
       });
@@ -63,6 +92,7 @@ class _AppInitializerState extends State<AppInitializer> {
 
   @override
   void dispose() {
+    _deepLinkSubscription?.cancel();
     DeepLinkService.dispose();
     super.dispose();
   }

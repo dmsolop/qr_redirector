@@ -3,25 +3,28 @@ import Flutter
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
+  private var deepLinkChannel: FlutterMethodChannel?
+  
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    let deepLinkChannel = FlutterMethodChannel(name: "qr_redirector/deep_link",
-                                               binaryMessenger: controller.binaryMessenger)
+    deepLinkChannel = FlutterMethodChannel(name: "qr_redirector/deep_link",
+                                           binaryMessenger: controller.binaryMessenger)
     
-    deepLinkChannel.setMethodCallHandler({
+    deepLinkChannel?.setMethodCallHandler({
       (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
       switch call.method {
       case "getInitialLink":
         if let url = launchOptions?[UIApplication.LaunchOptionsKey.url] as? URL {
+          print("[AppDelegate] Initial deep link: \(url.absoluteString)")
           result(url.absoluteString)
         } else {
           result(nil)
         }
       case "getLinkStream":
-        // Для спрощення повертаємо nil - в реальному додатку тут був би stream
+        // Stream реалізований через onDeepLink метод
         result(nil)
       default:
         result(FlutterMethodNotImplemented)
@@ -33,11 +36,10 @@ import Flutter
   }
   
   override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-    let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    let deepLinkChannel = FlutterMethodChannel(name: "qr_redirector/deep_link",
-                                               binaryMessenger: controller.binaryMessenger)
+    print("[AppDelegate] Runtime deep link received: \(url.absoluteString)")
     
-    deepLinkChannel.invokeMethod("onDeepLink", arguments: url.absoluteString)
+    // Відправляємо deep link в Flutter
+    deepLinkChannel?.invokeMethod("onDeepLink", arguments: url.absoluteString)
     
     return true
   }

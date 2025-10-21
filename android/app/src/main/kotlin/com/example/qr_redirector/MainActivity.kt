@@ -9,18 +9,20 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "qr_redirector/deep_link"
     private var initialLink: String? = null
+    private var methodChannel: MethodChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+        methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 "getInitialLink" -> {
                     result.success(initialLink)
                     initialLink = null
                 }
                 "getLinkStream" -> {
-                    // Для спрощення повертаємо null - в реальному додатку тут був би stream
+                    // Stream реалізований через onDeepLink метод
                     result.success(null)
                 }
                 else -> {
@@ -45,7 +47,16 @@ class MainActivity: FlutterActivity() {
         val data: Uri? = intent?.data
 
         if (Intent.ACTION_VIEW == action && data != null) {
-            initialLink = data.toString()
+            val link = data.toString()
+            android.util.Log.d("MainActivity", "Deep link received: $link")
+            
+            // Якщо додаток вже запущений, відправляємо deep link в Flutter
+            if (methodChannel != null) {
+                methodChannel?.invokeMethod("onDeepLink", link)
+            } else {
+                // Якщо додаток ще не запущений, зберігаємо для початкової обробки
+                initialLink = link
+            }
         }
     }
 }
