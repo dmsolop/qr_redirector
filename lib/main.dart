@@ -46,12 +46,12 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initializeApp() async {
+    // Спочатку перевіряємо, чи є налаштовані проєкти
+    final projects = await StorageService.getProjects();
+    final hasProjects = projects.isNotEmpty;
+    
     try {
       await DeepLinkService.initialize();
-
-      // Перевіряємо, чи є налаштовані проєкти
-      final projects = await StorageService.getProjects();
-      final hasProjects = projects.isNotEmpty;
 
       // Підписуємося на runtime deep links
       _deepLinkSubscription = DeepLinkService.linkStream.listen(
@@ -81,19 +81,13 @@ class _AppInitializerState extends State<AppInitializer> {
         print('[App] AppError details: ${e.message}');
       }
 
-      // Показуємо помилку користувачу, але все одно запускаємо додаток
+      // Показуємо конкретну помилку користувачу
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Помилка ініціалізації: ${e is AppError ? e.message : e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorDialog(context, e);
       }
       setState(() {
         _isInitialized = true;
-        _hasProjects = false;
-        // При помилці також показуємо головний екран
+        _hasProjects = hasProjects; // Використовуємо завантажені проєкти
         _showSettings = false;
       });
     }
@@ -129,6 +123,31 @@ class _AppInitializerState extends State<AppInitializer> {
         _showSettings = true;
       });
     }
+  }
+
+  /// Показує діалог з конкретною помилкою
+  void _showErrorDialog(BuildContext context, dynamic error) {
+    print('[App] Showing error dialog for: $error');
+
+    // Простий діалог для тестування
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Проєкт не знайдено'),
+          content: Text('QR код не відповідає жодному з налаштованих проєктів\n\nМожлива причина: неправильний regex в налаштуваннях проєктів.\n\nРекомендації:\n• Перевірте правильність regex в налаштуваннях\n• Або зверніться до адміністратора'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
