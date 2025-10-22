@@ -8,6 +8,7 @@ class DeepLinkService {
   static const MethodChannel _channel = MethodChannel('qr_redirector/deep_link');
   static StreamSubscription<String>? _linkSubscription;
   static final StreamController<String> _linkController = StreamController<String>.broadcast();
+  static String? _lastProcessedLink; // Зберігаємо останній оброблений deep link
 
   /// Stream для отримання deep links в реальному часі
   static Stream<String> get linkStream => _linkController.stream;
@@ -59,9 +60,20 @@ class DeepLinkService {
     try {
       _log('Processing deep link: $link');
 
+      // Перевіряємо чи це той самий deep link що вже оброблявся
+      if (_lastProcessedLink == link) {
+        _log('Skipping duplicate deep link: $link');
+        return;
+      }
+
       // Отримуємо список проєктів
       final projects = await StorageService.getProjects();
       _log('Loaded ${projects.length} projects');
+
+      // Логуємо деталі проєктів для debugging
+      for (int i = 0; i < projects.length; i++) {
+        _log('Project $i: name="${projects[i].name}", regex="${projects[i].regex}", url="${projects[i].urlTemplate}"');
+      }
 
       // Обробляємо QR код
       final String? finalUrl = await URLService.processQRCode(link, projects);
@@ -74,6 +86,10 @@ class DeepLinkService {
           throw DeepLinkError('Не вдалося відкрити URL: $finalUrl');
         }
         _log('Successfully opened URL: $finalUrl');
+        // Зберігаємо оброблений deep link щоб не обробляти його повторно
+        _lastProcessedLink = link;
+        // Очищаємо deep link в MainActivity щоб не обробляти його повторно
+        await _channel.invokeMethod('clearLastProcessedLink');
       } else {
         _log('No matching project found for QR code: $link');
         throw DeepLinkError('Не знайдено відповідний проєкт для QR коду: $link');
@@ -94,9 +110,16 @@ class DeepLinkService {
     print('[DeepLinkService] ${DateTime.now().toIso8601String()} - $message');
   }
 
+  /// Очищає збережений deep link щоб можна було відсканувати той самий код знову
+  static void clearLastProcessedLink() {
+    _lastProcessedLink = null;
+    _log('Cleared last processed deep link');
+  }
+
   static void dispose() {
     _linkSubscription?.cancel();
     _linkController.close();
+    _lastProcessedLink = null; // Скидаємо збережений deep link
     _log('Deep link service disposed');
   }
 }

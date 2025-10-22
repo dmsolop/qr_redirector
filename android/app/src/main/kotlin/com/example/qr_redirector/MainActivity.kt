@@ -28,6 +28,12 @@ class MainActivity: FlutterFragmentActivity() {
                     // Stream реалізований через onDeepLink метод
                     result.success(null)
                 }
+                "clearLastProcessedLink" -> {
+                    android.util.Log.d("MainActivity", "Clearing last processed link")
+                    // Очищаємо поточний intent щоб не обробляти його повторно
+                    setIntent(Intent())
+                    result.success(null)
+                }
                 else -> {
                     result.notImplemented()
                 }

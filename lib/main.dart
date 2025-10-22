@@ -49,7 +49,7 @@ class _AppInitializerState extends State<AppInitializer> {
     // Спочатку перевіряємо, чи є налаштовані проєкти
     final projects = await StorageService.getProjects();
     final hasProjects = projects.isNotEmpty;
-    
+
     try {
       await DeepLinkService.initialize();
 
