@@ -14,19 +14,29 @@ class DeepLinkService {
 
   static Future<void> initialize() async {
     try {
+      _log('Starting deep link service initialization...');
+
       // Обробка deep links при запуску додатку
+      _log('Calling getInitialLink...');
       final String? initialLink = await _channel.invokeMethod('getInitialLink');
+      _log('getInitialLink result: $initialLink');
+
       if (initialLink != null) {
         _log('Initial deep link received: $initialLink');
         await _handleDeepLink(initialLink);
       }
 
       // Налаштовуємо обробку runtime deep links
+      _log('Setting method call handler...');
       _channel.setMethodCallHandler(_handleMethodCall);
 
       _log('Deep link service initialized successfully');
     } catch (e) {
       _log('Error initializing deep link service: $e');
+      _log('Error type: ${e.runtimeType}');
+      if (e is PlatformException) {
+        _log('PlatformException details: code=${e.code}, message=${e.message}');
+      }
       throw DeepLinkError('Не вдалося ініціалізувати deep link сервіс', e.toString());
     }
   }

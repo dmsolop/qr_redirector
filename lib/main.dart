@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'services/deep_link_service.dart';
 import 'services/auth_service.dart';
+import 'services/storage_service.dart';
 import 'screens/settings_screen.dart';
 import 'core/errors.dart';
 
@@ -35,6 +36,7 @@ class AppInitializer extends StatefulWidget {
 class _AppInitializerState extends State<AppInitializer> {
   bool _isInitialized = false;
   bool _showSettings = false;
+  bool _hasProjects = false;
   StreamSubscription<String>? _deepLinkSubscription;
 
   @override
@@ -47,16 +49,18 @@ class _AppInitializerState extends State<AppInitializer> {
     try {
       await DeepLinkService.initialize();
 
+      // Перевіряємо, чи є налаштовані проєкти
+      final projects = await StorageService.getProjects();
+      final hasProjects = projects.isNotEmpty;
+
       // Підписуємося на runtime deep links
       _deepLinkSubscription = DeepLinkService.linkStream.listen(
         (link) {
           // Deep links автоматично обробляються в DeepLinkService
-          // У background режимі не показуємо UI повідомлення
           // ignore: avoid_print
-          print('[App] Deep link processed in background: $link');
+          print('[App] Deep link processed: $link');
         },
         onError: (error) {
-          // Логуємо помилки, але не показуємо UI у background режимі
           // ignore: avoid_print
           print('[App] Deep link error: $error');
         },
@@ -64,8 +68,19 @@ class _AppInitializerState extends State<AppInitializer> {
 
       setState(() {
         _isInitialized = true;
+        _hasProjects = hasProjects;
+        // Завжди показуємо головний екран з кнопкою "Налаштування"
+        _showSettings = false;
       });
     } catch (e) {
+      // Логуємо детальну помилку
+      // ignore: avoid_print
+      print('[App] Initialization error: $e');
+      if (e is AppError) {
+        // ignore: avoid_print
+        print('[App] AppError details: ${e.message}');
+      }
+
       // Показуємо помилку користувачу, але все одно запускаємо додаток
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +92,9 @@ class _AppInitializerState extends State<AppInitializer> {
       }
       setState(() {
         _isInitialized = true;
+        _hasProjects = false;
+        // При помилці також показуємо головний екран
+        _showSettings = false;
       });
     }
   }
@@ -137,8 +155,57 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    // Якщо не показуємо налаштування, показуємо background екран
+    // Якщо не показуємо налаштування, показуємо головний екран
     if (!_showSettings) {
+      // Якщо є проєкти, показуємо мінімальний екран
+      if (_hasProjects) {
+        return Scaffold(
+          backgroundColor: Colors.green.shade50,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.qr_code_scanner,
+                  size: 32,
+                  color: Colors.green.shade600,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'QR Редіректор',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Працює у фоні',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green.shade600,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: _openSettings,
+                  icon: Icon(Icons.settings, size: 16, color: Colors.green.shade700),
+                  label: Text(
+                    'Налаштування',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      // Якщо немає проєктів, показуємо повний екран налаштувань
       return Scaffold(
         body: Center(
           child: Column(
@@ -159,11 +226,12 @@ class _AppInitializerState extends State<AppInitializer> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Додаток працює у фоні',
+                'Налаштуйте перший проєкт',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -179,8 +247,13 @@ class _AppInitializerState extends State<AppInitializer> {
 
     // Показуємо налаштування
     return SettingsScreen(
-      onBack: () {
+      onBack: () async {
+        // Перевіряємо, чи є проєкти після повернення з налаштувань
+        final projects = await StorageService.getProjects();
+        final hasProjects = projects.isNotEmpty;
+
         setState(() {
+          _hasProjects = hasProjects;
           _showSettings = false;
         });
       },
