@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/project.dart';
 import '../services/storage_service.dart';
 import 'project_list_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onBack;
-  
+
   const SettingsScreen({Key? key, this.onBack}) : super(key: key);
 
   @override
@@ -69,6 +70,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: Text('${_projects.length} проєктів'),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onTap: _navigateToProjects,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.play_circle_fill),
+                      title: const Text('Запустити у фоні (Android)'),
+                      subtitle: const Text('Сервіс активується, UI згорнеться'),
+                      onTap: () async {
+                        try {
+                          print('[Settings] Starting background mode...');
+                          await StorageService.setForegroundServiceEnabled(true);
+                          const channel = MethodChannel('qr_redirector/deep_link');
+                          await channel.invokeMethod('startForegroundService');
+                          print('[Settings] Background service started');
+                          await channel.invokeMethod('moveTaskToBack');
+                          print('[Settings] App moved to background');
+                        } catch (e) {
+                          print('[Settings] Failed to start background: $e');
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.power_settings_new, color: Colors.red),
+                      title: const Text('Повністю закрити застосунок (Android)'),
+                      subtitle: const Text('Зупинити фоновий сервіс і завершити роботу'),
+                      onTap: () async {
+                        try {
+                          await StorageService.setForegroundServiceEnabled(false);
+                          const channel = MethodChannel('qr_redirector/deep_link');
+                          await channel.invokeMethod('exitApp');
+                        } catch (e) {
+                          print('[Settings] Failed to exit app: $e');
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(height: 16),

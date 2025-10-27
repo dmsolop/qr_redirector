@@ -6,6 +6,7 @@ import '../core/errors.dart';
 class StorageService {
   static const String _projectsKey = 'projects';
   static const String _nextIdKey = 'next_project_id';
+  static const String _fgServiceEnabledKey = 'foreground_service_enabled';
 
   static Future<List<Project>> getProjects() async {
     try {
@@ -24,6 +25,10 @@ class StorageService {
       final projectsJson = projects.map((project) => jsonEncode(project.toJson())).toList();
 
       await prefs.setStringList(_projectsKey, projectsJson);
+      // Дублюємо список проєктів у вигляді одного JSON-рядка для нативного Android сервісу.
+      // Ключ буде збережений у SharedPreferences як 'flutter.native_projects_json'.
+      final nativeProjectsJson = jsonEncode(projects.map((p) => p.toJson()).toList());
+      await prefs.setString('native_projects_json', nativeProjectsJson);
     } catch (e) {
       throw StorageError('Не вдалося зберегти проєкти', e.toString());
     }
@@ -89,5 +94,15 @@ class StorageService {
   static Future<void> resetNextProjectId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_nextIdKey);
+  }
+
+  static Future<bool> getForegroundServiceEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_fgServiceEnabledKey) ?? false;
+  }
+
+  static Future<void> setForegroundServiceEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_fgServiceEnabledKey, enabled);
   }
 }
