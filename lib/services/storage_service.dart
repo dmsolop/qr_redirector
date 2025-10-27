@@ -27,7 +27,14 @@ class StorageService {
       await prefs.setStringList(_projectsKey, projectsJson);
       // Дублюємо список проєктів у вигляді одного JSON-рядка для нативного Android сервісу.
       // Ключ буде збережений у SharedPreferences як 'flutter.native_projects_json'.
-      final nativeProjectsJson = jsonEncode(projects.map((p) => p.toJson()).toList());
+      // Важливо: для нативного сервісу потрібно правильно екранувати regex
+      final nativeProjects = projects.map((p) => {
+        'id': p.id,
+        'name': p.name,
+        'regex': p.regex, // Regex залишається як є для нативного коду
+        'urlTemplate': p.urlTemplate,
+      }).toList();
+      final nativeProjectsJson = jsonEncode(nativeProjects);
       await prefs.setString('native_projects_json', nativeProjectsJson);
     } catch (e) {
       throw StorageError('Не вдалося зберегти проєкти', e.toString());
