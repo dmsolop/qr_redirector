@@ -4,6 +4,7 @@ import 'services/deep_link_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 import 'screens/settings_screen.dart';
+import 'screens/project_list_screen.dart';
 import 'core/errors.dart';
 
 void main() {
@@ -176,89 +177,235 @@ class _AppInitializerState extends State<AppInitializer> {
 
     // Якщо не показуємо налаштування, показуємо головний екран
     if (!_showSettings) {
-      // Якщо є проєкти, показуємо мінімальний екран
+      // Якщо є проєкти, показуємо покращений стартовий екран
       if (_hasProjects) {
         return Scaffold(
-          backgroundColor: Colors.green.shade50,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.qr_code_scanner,
-                  size: 32,
-                  color: Colors.green.shade600,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'QR Редіректор',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Працює у фоні',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green.shade600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: _openSettings,
-                  icon: Icon(Icons.settings, size: 16, color: Colors.green.shade700),
-                  label: Text(
-                    'Налаштування',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green.shade700,
+          backgroundColor: Colors.grey.shade50,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  // Головна іконка та заголовок
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.blue.shade200, width: 1),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.qr_code_scanner,
+                          size: 48,
+                          color: Colors.blue.shade600,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'QR Редіректор',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Система працює у фоні',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue.shade600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 32),
+                  // Статус проєктів
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.shade200, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green.shade600,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Проєкти налаштовані та готові до роботи',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // Кнопка налаштувань
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _openSettings,
+                      icon: const Icon(Icons.settings, size: 20),
+                      label: const Text(
+                        'Налаштування',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Додаткова інформація
+                  Text(
+                    'Для доступу до налаштувань потрібна авторизація',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         );
       }
 
-      // Якщо немає проєктів, показуємо повний екран налаштувань
+      // Якщо немає проєктів, показуємо покращений екран налаштувань
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.qr_code_scanner,
-                size: 64,
-                color: Colors.blue,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'QR Редіректор',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        backgroundColor: Colors.grey.shade50,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const Spacer(),
+                // Головна іконка та заголовок
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.blue.shade200, width: 1),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.qr_code_scanner,
+                        size: 64,
+                        color: Colors.blue.shade600,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'QR Редіректор',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Налаштуйте перший проєкт',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue.shade600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Налаштуйте перший проєкт',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                const SizedBox(height: 32),
+                // Інформаційний блок
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.orange.shade600,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Спочатку потрібно налаштувати проєкти для роботи з QR-кодами',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.orange.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: _openSettings,
-                icon: const Icon(Icons.settings),
-                label: const Text('Налаштування'),
-              ),
-            ],
+                const Spacer(),
+                // Кнопка налаштувань
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _openSettings,
+                    icon: const Icon(Icons.settings, size: 20),
+                    label: const Text(
+                      'Налаштування',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Додаткова інформація
+                Text(
+                  'Для доступу до налаштувань потрібна авторизація',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       );
