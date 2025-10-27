@@ -1,6 +1,7 @@
 import 'package:url_launcher/url_launcher.dart';
 import '../models/project.dart';
 import '../core/errors.dart';
+import 'regex_matching_service.dart';
 
 class URLService {
   /// Валідує regex патерн
@@ -38,23 +39,11 @@ class URLService {
   }
 
   static Future<String?> processQRCode(String qrData, List<Project> projects) async {
-    // Перебираємо всі проєкти
-    for (Project project in projects) {
-      try {
-        RegExp regex = RegExp(project.regex);
-        Match? match = regex.firstMatch(qrData);
+    // Використовуємо новий сервіс для пошуку найкращого співпадіння
+    final matchResult = RegexMatchingService.findBestMatch(qrData, projects);
 
-        if (match != null) {
-          // Знайшли відповідний проєкт
-          // Шукаємо групу з ключем (остання група в regex)
-          String key = match.group(match.groupCount)!; // Остання група = ключ
-          String finalUrl = project.urlTemplate.replaceAll('{key}', key);
-          return finalUrl;
-        }
-      } catch (e) {
-        // Якщо regex некоректний, пропускаємо цей проєкт
-        continue;
-      }
+    if (matchResult != null) {
+      return matchResult.finalUrl;
     }
 
     return null; // Не знайшли відповідний проєкт

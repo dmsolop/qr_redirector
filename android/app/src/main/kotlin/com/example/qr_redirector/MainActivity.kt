@@ -177,24 +177,87 @@ class MainActivity: FlutterFragmentActivity() {
     }
 
     private fun resolveFinalUrl(deepLink: String, rules: List<ProjectRule>): String? {
+        android.util.Log.d("MainActivity", "Пошук найкращого співпадіння для: $deepLink")
+        android.util.Log.d("MainActivity", "Кількість правил: ${rules.size}")
+        
+        val validMatches = mutableListOf<MatchInfo>()
+        
         for (rule in rules) {
             try {
                 val pattern = Regex(rule.regex)
-                val match = pattern.find(deepLink)
-                if (match != null) {
-                    val groups = match.groupValues
-                    if (groups.isNotEmpty()) {
-                        val key = groups.last()
-                        val finalUrl = rule.urlTemplate.replace("{key}", key)
-                        android.util.Log.d("MainActivity", "Match in Activity with regex='${rule.regex}', key='$key', finalUrl='$finalUrl'")
-                        return finalUrl
-                    }
+                val allMatches = pattern.findAll(deepLink).toList()
+                
+                android.util.Log.d("MainActivity", "Regex '${rule.regex}': знайдено ${allMatches.size} співпадінь")
+                
+                // Критерій 1: має бути рівно одне співпадіння
+                if (allMatches.size != 1) {
+                    android.util.Log.d("MainActivity", "Regex '${rule.regex}' пропущено: ${allMatches.size} співпадінь (має бути 1)")
+                    continue
                 }
+                
+                val match = allMatches.first()
+                val groups = match.groupValues
+                
+                // Критерій 2: має бути хоча б одна група захоплення
+                if (groups.size < 2) {
+                    android.util.Log.d("MainActivity", "Regex '${rule.regex}' пропущено: немає груп захоплення")
+                    continue
+                }
+                
+                val key = groups.last()
+                val finalUrl = rule.urlTemplate.replace("{key}", key)
+                val matchLength = match.range.last - match.range.first + 1
+                val groupCount = groups.size - 1 // Виключаємо повне співпадіння
+                
+                val matchInfo = MatchInfo(
+                    rule = rule,
+                    key = key,
+                    finalUrl = finalUrl,
+                    matchLength = matchLength,
+                    groupCount = groupCount
+                )
+                
+                validMatches.add(matchInfo)
+                android.util.Log.d("MainActivity", "Regex '${rule.regex}' додано: key='$key', length=$matchLength, groups=$groupCount")
+                
             } catch (e: Exception) {
                 android.util.Log.w("MainActivity", "Regex error in Activity for pattern='${rule.regex}': ${e.message}")
                 continue
             }
         }
-        return null
+        
+        if (validMatches.isEmpty()) {
+            android.util.Log.w("MainActivity", "Не знайдено жодного валідного співпадіння")
+            return null
+        }
+        
+        // Сортування за критеріями пріоритету:
+        // 1. Більше груп захоплення (більш специфічний regex)
+        // 2. Довше співпадіння (більш точний match)
+        // 3. Порядок в списку правил (перший має пріоритет)
+        validMatches.sortWith { a, b ->
+            val groupComparison = b.groupCount.compareTo(a.groupCount)
+            if (groupComparison != 0) return@sortWith groupComparison
+            
+            val lengthComparison = b.matchLength.compareTo(a.matchLength)
+            if (lengthComparison != 0) return@sortWith lengthComparison
+            
+            // Порядок в списку правил
+            rules.indexOf(a.rule).compareTo(rules.indexOf(b.rule))
+        }
+        
+        val bestMatch = validMatches.first()
+        android.util.Log.d("MainActivity", "Найкраще співпадіння: regex='${bestMatch.rule.regex}', key='${bestMatch.key}', url='${bestMatch.finalUrl}'")
+        
+        return bestMatch.finalUrl
     }
+    
+    // Допоміжний клас для зберігання інформації про співпадіння
+    private data class MatchInfo(
+        val rule: ProjectRule,
+        val key: String,
+        val finalUrl: String,
+        val matchLength: Int,
+        val groupCount: Int
+    )
 }

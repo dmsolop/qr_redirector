@@ -4,7 +4,6 @@ import 'services/deep_link_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 import 'screens/settings_screen.dart';
-import 'screens/project_list_screen.dart';
 import 'core/errors.dart';
 
 void main() {
@@ -130,20 +129,66 @@ class _AppInitializerState extends State<AppInitializer> {
   void _showErrorDialog(BuildContext context, dynamic error) {
     print('[App] Showing error dialog for: $error');
 
-    // Простий діалог для тестування
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Проєкт не знайдено'),
-          content: Text('QR код не відповідає жодному з налаштованих проєктів\n\nМожлива причина: неправильний regex в налаштуваннях проєктів.\n\nРекомендації:\n• Перевірте правильність regex в налаштуваннях\n• Або зверніться до адміністратора'),
+          title: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red.shade600),
+              const SizedBox(width: 8),
+              const Text('Проєкт не знайдено'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'QR код не відповідає жодному з налаштованих проєктів',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Можливі причини:',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              Text('• Неправильний regex в налаштуваннях проєктів'),
+              Text('• QR код не відповідає жодному шаблону'),
+              Text('• Відсутні групи захоплення в regex'),
+              Text('• Regex знаходить кілька співпадінь'),
+              const SizedBox(height: 16),
+              Text(
+                'Рекомендації для вирішення:',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              Text('• Перевірте правильність regex в налаштуваннях'),
+              Text('• Переконайтеся що regex має групи захоплення'),
+              Text('• Перевірте що regex дає рівно одне співпадіння'),
+              Text('• Зверніться до адміністратора системи'),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('OK'),
+              child: const Text('Зрозуміло'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _openSettings();
+              },
+              icon: const Icon(Icons.settings, size: 16),
+              label: const Text('Налаштування'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         );

@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "name": "Проєкт 1 - Повне співпадіння з 2 групами",
+        "regex": "^reich://(\\d)(\\d{3})$",
+        "urlTemplate": "https://webhook.site/af1770a8-2a62-4ba2-894a-0c1167e87f42/{key}"
+    },
+    {
+        "id": 2,
+        "name": "Проєкт 2 - Повне співпадіння з 1 групою",
+        "regex": "^reich://(\\d+)$",
+        "urlTemplate": "https://webhook.site/project2/{key}"
+    },
+    {
+        "id": 3,
+        "name": "Проєкт 3 - Часткове співпадіння",
+        "regex": "reich://(\\d+)",
+        "urlTemplate": "https://webhook.site/project3/{key}"
+    },
+    {
+        "id": 4,
+        "name": "Проєкт 4 - Тестовий з буквами",
+        "regex": "^test://([a-zA-Z]+)$",
+        "urlTemplate": "https://webhook.site/project4/{key}"
+    },
+    {
+        "id": 5,
+        "name": "Проєкт 5 - Складний патерн",
+        "regex": "^app://(\\w+)/(\\d+)$",
+        "urlTemplate": "https://webhook.site/project5/{key}"
+    }
+]
