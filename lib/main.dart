@@ -6,6 +6,9 @@ import 'services/storage_service.dart';
 import 'screens/settings_screen.dart';
 import 'core/errors.dart';
 
+// Глобальний ключ для навігатора (для показу алєртів з сервісів)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() {
   runApp(const QRRedirectorApp());
 }
@@ -17,6 +20,7 @@ class QRRedirectorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'QR Редіректор',
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -51,6 +55,8 @@ class _AppInitializerState extends State<AppInitializer> {
     final hasProjects = projects.isNotEmpty;
 
     try {
+      // Встановлюємо глобальний ключ навігатора для показу алєртів
+      DeepLinkService.setNavigatorKey(navigatorKey);
       await DeepLinkService.initialize();
 
       // Підписуємося на runtime deep links

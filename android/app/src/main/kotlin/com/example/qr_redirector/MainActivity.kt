@@ -68,6 +68,11 @@ class MainActivity: FlutterFragmentActivity() {
                     finishAndRemoveTask()
                     result.success(null)
                 }
+                "showInvalidDeeplinkAlert" -> {
+                    android.util.Log.d("MainActivity", "showInvalidDeeplinkAlert called")
+                    // Не ховаємо UI, щоб показати алєрт
+                    result.success(null)
+                }
                 else -> {
                     result.notImplemented()
                 }
@@ -110,6 +115,20 @@ class MainActivity: FlutterFragmentActivity() {
         if (Intent.ACTION_VIEW == action && data != null) {
             val link = data.toString()
             android.util.Log.d("MainActivity", "Deep link received: $link")
+            // Діагностика: перевіряємо базовий патерн напряму
+            try {
+                val diagPattern = Regex("^reich://(\\d+)$")
+                val diagMatches = diagPattern.findAll(link).toList()
+                android.util.Log.d("MainActivity", "[DIAG] direct '^reich://(\\d+)$' matches=${diagMatches.size}")
+                if (diagMatches.isNotEmpty()) {
+                    val m = diagMatches.first()
+                    android.util.Log.d("MainActivity", "[DIAG] range=${m.range} text='${link.substring(m.range.first, m.range.last + 1)}' groups=${m.groupValues}")
+                }
+                val bytes = link.toByteArray()
+                android.util.Log.d("MainActivity", "[DIAG] link.length=${link.length} bytes=${bytes.joinToString(prefix="[", postfix="]")}")
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "[DIAG] regex diag failed: ${e.message}")
+            }
             // Локальна нативна обробка: парсимо правила і відкриваємо браузер
             val rules = loadProjectRules()
             android.util.Log.d("MainActivity", "Loaded ${rules.size} rules from SharedPreferences (Activity)")
@@ -123,13 +142,29 @@ class MainActivity: FlutterFragmentActivity() {
                 } catch (e: Exception) {
                     android.util.Log.e("MainActivity", "Failed to open URL from Activity: $finalUrl", e)
                 }
+                // Очищаємо intent і завершуємо активність негайно, щоб UI не бликав
+                setIntent(Intent())
+                finish()
+                return
             } else {
                 android.util.Log.w("MainActivity", "No matching rule for deep link in Activity: $link")
+                // Якщо не знайдено співпадіння, показуємо Flutter UI для алєрту
+                android.util.Log.d("MainActivity", "Calling showInvalidDeeplinkAlert via MethodChannel")
+                // Ставимо прапорець у SharedPreferences, щоб Flutter показав алерт після ініціалізації
+                try {
+                    val prefs = getSharedPreferences("FlutterSharedPreferences", MODE_PRIVATE)
+                    prefs.edit().putBoolean("flutter.pending_invalid_deeplink", true).apply()
+                } catch (e: Exception) {
+                    android.util.Log.w("MainActivity", "Failed to set pending_invalid_deeplink flag: ${e.message}")
+                }
+                try {
+                    methodChannel?.invokeMethod("showInvalidDeeplinkAlert", null)
+                    android.util.Log.d("MainActivity", "showInvalidDeeplinkAlert called successfully")
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to call showInvalidDeeplinkAlert", e)
+                }
+                // Не ховаємо UI, щоб показати алєрт
             }
-            // Після відкриття URL ховаємо UI і очищаємо intent
-            moveTaskToBack(true)
-            setIntent(Intent())
-            // З noHistory="true" активність автоматично не з'являється в треї
         }
     }
 
@@ -184,7 +219,13 @@ class MainActivity: FlutterFragmentActivity() {
         
         for (rule in rules) {
             try {
-                val pattern = Regex(rule.regex)
+                // Нормалізуємо бекслеші з JSON ("\\d" -> "\d", "\\w" -> "\w")
+                val normalizedRegex = try {
+                    rule.regex.replace("\\\\", "\\")
+                } catch (_: Exception) { rule.regex }
+                android.util.Log.d("MainActivity", "Regex original='${rule.regex}', normalized='${normalizedRegex}'")
+
+                val pattern = Regex(normalizedRegex)
                 val allMatches = pattern.findAll(deepLink).toList()
                 
                 android.util.Log.d("MainActivity", "Regex '${rule.regex}': знайдено ${allMatches.size} співпадінь")

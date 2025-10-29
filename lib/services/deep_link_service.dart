@@ -1,17 +1,26 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'url_service.dart';
 import 'storage_service.dart';
+import 'alert_service.dart';
 import '../core/errors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DeepLinkService {
   static const MethodChannel _channel = MethodChannel('qr_redirector/deep_link');
   static StreamSubscription<String>? _linkSubscription;
   static final StreamController<String> _linkController = StreamController<String>.broadcast();
   static String? _lastProcessedLink; // Зберігаємо останній оброблений deep link
+  static GlobalKey<NavigatorState>? _navigatorKey; // Глобальний ключ для навігатора
 
   /// Stream для отримання deep links в реальному часі
   static Stream<String> get linkStream => _linkController.stream;
+
+  /// Встановлює глобальний ключ навігатора для показу алєртів
+  static void setNavigatorKey(GlobalKey<NavigatorState> navigatorKey) {
+    _navigatorKey = navigatorKey;
+  }
 
   static Future<void> initialize() async {
     try {
@@ -30,6 +39,20 @@ class DeepLinkService {
       // Налаштовуємо обробку runtime deep links
       _log('Setting method call handler...');
       _channel.setMethodCallHandler(_handleMethodCall);
+
+      // Перевіряємо прапорець про необхідність показати алерт невалідного deeplink
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final pendingInvalid = prefs.getBool('pending_invalid_deeplink') ?? false;
+        if (pendingInvalid) {
+          _log('Pending invalid deeplink flag detected -> showing alert');
+          // Скидаємо прапорець перед показом, щоб уникнути повторів
+          await prefs.setBool('pending_invalid_deeplink', false);
+          _showInvalidDeeplinkAlert();
+        }
+      } catch (e) {
+        _log('Failed to read pending_invalid_deeplink flag: $e');
+      }
 
       _log('Deep link service initialized successfully');
     } catch (e) {
@@ -50,6 +73,11 @@ class DeepLinkService {
         _log('Runtime deep link received: $link');
         _linkController.add(link);
         await _handleDeepLink(link);
+        break;
+      case 'showInvalidDeeplinkAlert':
+        _log('showInvalidDeeplinkAlert called from native');
+        // Показуємо алєрт про невалідний deeplink
+        _showInvalidDeeplinkAlert();
         break;
       default:
         _log('Unknown method call: ${call.method}');
@@ -114,6 +142,21 @@ class DeepLinkService {
   static void clearLastProcessedLink() {
     _lastProcessedLink = null;
     _log('Cleared last processed deep link');
+  }
+
+  /// Показує алєрт про невалідний deeplink
+  static void _showInvalidDeeplinkAlert() {
+    _log('Showing invalid deeplink alert');
+    if (_navigatorKey?.currentContext != null) {
+      AlertService.showInvalidDeeplinkAlert(
+        _navigatorKey!.currentContext!,
+        onOkPressed: () {
+          _log('Invalid deeplink alert dismissed');
+        },
+      );
+    } else {
+      _log('Could not get context to show alert - navigator key not set');
+    }
   }
 
   static void dispose() {
