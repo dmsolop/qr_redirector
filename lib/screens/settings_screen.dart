@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/project.dart';
+import '../services/ui_mode_service.dart';
+import '../services/navigation_observer.dart';
+import 'package:flutter/widgets.dart';
 import '../services/storage_service.dart';
 import 'project_list_screen.dart';
 
@@ -13,14 +16,50 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> with RouteAware {
   List<Project> _projects = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
     _loadProjects();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPush() {
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
+  }
+
+  @override
+  void didPopNext() {
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
+  }
+
+  @override
+  void didPushNext() {
+    // Залишаємо true, поки налаштування видимі; якщо зверху інший екран — значення не змінюємо.
+  }
+
+  @override
+  void didPop() {
+    // Route popped; no explicit change needed here.
   }
 
   Future<void> _loadProjects() async {
@@ -76,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.play_circle_fill),
-                      title: const Text('Запустити у фоні (Android)'),
+                      title: const Text('Перейти у фон'),
                       subtitle: const Text('Сервіс активується, UI згорнеться'),
                       onTap: () async {
                         try {

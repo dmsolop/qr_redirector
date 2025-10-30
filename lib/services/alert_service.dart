@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/alert_messages.dart';
+import 'ui_mode_service.dart';
 
 /// Сервіс для показу різних типів алєртів в застосунку
 class AlertService {
@@ -11,6 +12,7 @@ class AlertService {
     BuildContext context, {
     VoidCallback? onOkPressed,
   }) {
+    UiModeService.pushOverride(UiMode.foregroundDisabled);
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -67,6 +69,7 @@ class AlertService {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                UiModeService.clearOverride();
                 onOkPressed?.call();
               },
               style: TextButton.styleFrom(
@@ -109,6 +112,7 @@ class AlertService {
     VoidCallback? onPressed,
     IconData? icon,
   }) {
+    UiModeService.pushOverride(UiMode.foregroundDisabled);
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -169,6 +173,7 @@ class AlertService {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                UiModeService.clearOverride();
                 onPressed?.call();
               },
               style: TextButton.styleFrom(

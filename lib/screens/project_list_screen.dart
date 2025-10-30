@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/storage_service.dart';
 import 'project_edit_screen.dart';
+import '../services/ui_mode_service.dart';
+import '../services/navigation_observer.dart';
+import 'package:flutter/widgets.dart';
 
 class ProjectListScreen extends StatefulWidget {
   final VoidCallback onProjectsChanged;
@@ -15,14 +18,40 @@ class ProjectListScreen extends StatefulWidget {
   State<ProjectListScreen> createState() => _ProjectListScreenState();
 }
 
-class _ProjectListScreenState extends State<ProjectListScreen> {
+class _ProjectListScreenState extends State<ProjectListScreen> with RouteAware {
   List<Project> _projects = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
     _loadProjects();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPush() {
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
+  }
+
+  @override
+  void didPopNext() {
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
   }
 
   Future<void> _loadProjects() async {

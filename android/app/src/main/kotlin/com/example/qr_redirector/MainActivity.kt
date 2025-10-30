@@ -58,6 +58,11 @@ class MainActivity: FlutterFragmentActivity() {
                     moveTaskToBack(true)
                     result.success(null)
                 }
+                "finishTask" -> {
+                    android.util.Log.d("MainActivity", "Finishing task (remove from recents, keep service)")
+                    finishAndRemoveTask()
+                    result.success(null)
+                }
                 
                 "exitApp" -> {
                     android.util.Log.d("MainActivity", "exitApp invoked -> stopping service and finishing task")

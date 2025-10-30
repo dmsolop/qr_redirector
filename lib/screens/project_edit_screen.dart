@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/url_service.dart';
 import '../core/errors.dart';
+import '../services/ui_mode_service.dart';
+import '../services/navigation_observer.dart';
+import 'package:flutter/widgets.dart';
 
 class ProjectEditScreen extends StatefulWidget {
   final Project project;
@@ -12,18 +15,19 @@ class ProjectEditScreen extends StatefulWidget {
   State<ProjectEditScreen> createState() => _ProjectEditScreenState();
 }
 
-class _ProjectEditScreenState extends State<ProjectEditScreen> {
+class _ProjectEditScreenState extends State<ProjectEditScreen> with RouteAware {
   late TextEditingController _nameController;
   late TextEditingController _regexController;
   late TextEditingController _urlController;
   late TextEditingController _testController;
-  
+
   String? _testResult;
   bool _isTesting = false;
 
   @override
   void initState() {
     super.initState();
+    UiModeService.setRouteMode(UiMode.foregroundDisabled);
     _nameController = TextEditingController(text: widget.project.name);
     _regexController = TextEditingController(text: widget.project.regex);
     _urlController = TextEditingController(text: widget.project.urlTemplate);
@@ -32,11 +36,36 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _nameController.dispose();
     _regexController.dispose();
     _urlController.dispose();
     _testController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPush() {
+    UiModeService.setRouteMode(UiMode.foregroundDisabled);
+  }
+
+  @override
+  void didPopNext() {
+    UiModeService.setRouteMode(UiMode.foregroundDisabled);
+  }
+
+  @override
+  void didPop() {
+    // Route popped; returning to previous route's mode
   }
 
   Future<void> _testProject() async {
@@ -66,7 +95,7 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
       );
 
       final result = await URLService.testProject(testProject, _testController.text);
-      
+
       setState(() {
         _testResult = result;
         _isTesting = false;
@@ -81,14 +110,14 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> {
       setState(() {
         _isTesting = false;
       });
-      
+
       String errorMessage = 'Помилка тестування';
       if (e is ValidationError) {
         errorMessage = e.message;
       } else {
         errorMessage = 'Помилка тестування: $e';
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );

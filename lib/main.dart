@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'services/deep_link_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 import 'screens/settings_screen.dart';
 import 'core/errors.dart';
+import 'services/ui_mode_service.dart';
+import 'services/navigation_observer.dart';
 
 // Глобальний ключ для навігатора (для показу алєртів з сервісів)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -21,6 +24,7 @@ class QRRedirectorApp extends StatelessWidget {
     return MaterialApp(
       title: 'QR Редіректор',
       navigatorKey: navigatorKey,
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -37,15 +41,19 @@ class AppInitializer extends StatefulWidget {
   State<AppInitializer> createState() => _AppInitializerState();
 }
 
-class _AppInitializerState extends State<AppInitializer> {
+class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObserver {
   bool _isInitialized = false;
   bool _showSettings = false;
   bool _hasProjects = false;
   StreamSubscription<String>? _deepLinkSubscription;
+  Timer? _autoBackgroundTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // За замовчуванням інші екрани працюють у режимі auto (автозгортання дозволене)
+    UiModeService.setRouteMode(UiMode.foregroundAuto);
     _initializeApp();
   }
 
@@ -103,6 +111,9 @@ class _AppInitializerState extends State<AppInitializer> {
     // Спочатку завжди запитуємо пароль телефона для верифікації власника
     // ignore: avoid_print
     print('[App] Starting device credentials verification...');
+    // Тимчасово блокуємо автозгортання під час системного діалогу аутентифікації
+    _autoBackgroundTimer?.cancel();
+    UiModeService.pushOverride(UiMode.foregroundDisabled);
 
     final deviceVerified = await AuthService.verifyDeviceCredentials();
 
@@ -110,6 +121,7 @@ class _AppInitializerState extends State<AppInitializer> {
     print('[App] Device verification result: $deviceVerified');
 
     if (!deviceVerified) {
+      UiModeService.clearOverride();
       if (mounted) {
         // Показуємо більш детальне повідомлення
         ScaffoldMessenger.of(context).showSnackBar(
@@ -128,6 +140,7 @@ class _AppInitializerState extends State<AppInitializer> {
       setState(() {
         _showSettings = true;
       });
+      UiModeService.clearOverride();
     }
   }
 
@@ -206,7 +219,48 @@ class _AppInitializerState extends State<AppInitializer> {
   void dispose() {
     _deepLinkSubscription?.cancel();
     DeepLinkService.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    // ignore: avoid_print
+    print('[Lifecycle] State changed: $state, mode=${UiModeService.effectiveMode}');
+    // Граціозне автозгортання: лише якщо залишаємося у бекграунді після короткої паузи.
+    // Це запобігає миттєвому поверненню у другий план при відновленні застосунку.
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (UiModeService.isForegroundAuto) {
+        // Запускаємо сервіс одразу
+        try {
+          // ignore: avoid_print
+          print('[Lifecycle] Starting foreground service (auto mode)');
+          await StorageService.setForegroundServiceEnabled(true);
+          const channel = MethodChannel('qr_redirector/deep_link');
+          await channel.invokeMethod('startForegroundService');
+        } catch (_) {}
+
+        // Плануємо згортання із затримкою, скасовується при resumed
+        _autoBackgroundTimer?.cancel();
+        _autoBackgroundTimer = Timer(const Duration(milliseconds: 250), () async {
+          // Якщо за цей час не відновились і режим досі дозволяє — згортаємо
+          if (UiModeService.isForegroundAuto) {
+            try {
+              // ignore: avoid_print
+              print('[Lifecycle] Finishing task (auto)');
+              const channel = MethodChannel('qr_redirector/deep_link');
+              await channel.invokeMethod('finishTask');
+            } catch (_) {}
+          }
+        });
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      // Скасовуємо автозгортання, якщо користувач повернув застосунок на передній план
+      // ignore: avoid_print
+      print('[Lifecycle] Resumed, cancel pending auto background');
+      _autoBackgroundTimer?.cancel();
+      _autoBackgroundTimer = null;
+    }
   }
 
   @override
@@ -228,6 +282,8 @@ class _AppInitializerState extends State<AppInitializer> {
 
     // Якщо не показуємо налаштування, показуємо головний екран
     if (!_showSettings) {
+      // Головний екран працює у режимі auto
+      UiModeService.setRouteMode(UiMode.foregroundAuto);
       // Якщо є проєкти, показуємо покращений стартовий екран
       if (_hasProjects) {
         return Scaffold(
@@ -345,7 +401,8 @@ class _AppInitializerState extends State<AppInitializer> {
         );
       }
 
-      // Якщо немає проєктів, показуємо покращений екран налаштувань
+      // Якщо немає проєктів, показуємо покращений екран налаштувань (також auto)
+      UiModeService.setRouteMode(UiMode.foregroundAuto);
       return Scaffold(
         backgroundColor: Colors.grey.shade50,
         body: SafeArea(
