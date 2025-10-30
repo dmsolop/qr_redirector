@@ -12,7 +12,11 @@ import 'services/navigation_observer.dart';
 // Глобальний ключ для навігатора (для показу алєртів з сервісів)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(const QRRedirectorApp());
 }
 
