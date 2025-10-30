@@ -147,9 +147,9 @@ class MainActivity: FlutterFragmentActivity() {
                 } catch (e: Exception) {
                     android.util.Log.e("MainActivity", "Failed to open URL from Activity: $finalUrl", e)
                 }
-                // Очищаємо intent і завершуємо активність негайно, щоб UI не бликав
+                // Очищаємо intent і повністю прибираємо задачу зі списку, щоб не було чорної карточки
                 setIntent(Intent())
-                finish()
+                finishAndRemoveTask()
                 return
             } else {
                 android.util.Log.w("MainActivity", "No matching rule for deep link in Activity: $link")
