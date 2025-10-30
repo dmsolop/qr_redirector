@@ -63,10 +63,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> with RouteAware {
   }
 
   Future<void> _addProject() async {
-    final nextId = await StorageService.getNextProjectId();
+    final peekId = await StorageService.peekNextProjectId();
     final newProject = Project(
-      id: nextId,
-      name: 'Проєкт $nextId',
+      id: 0, // ID буде призначено лише при підтвердженні збереження
+      name: 'Проєкт $peekId',
       regex: '',
       urlTemplate: '',
     );
@@ -79,7 +79,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> with RouteAware {
     );
 
     if (result != null) {
-      await StorageService.addProject(result);
+      final projectToSave = result.id == 0
+          ? result.copyWith(id: await StorageService.allocateNextProjectId())
+          : result;
+      await StorageService.addProject(projectToSave);
       _loadProjects();
       widget.onProjectsChanged();
     }

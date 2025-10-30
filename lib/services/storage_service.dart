@@ -98,6 +98,23 @@ class StorageService {
     return nextId;
   }
 
+  // Повертає наступний ID БЕЗ інкременту (лише для відображення пропозиції)
+  static Future<int> peekNextProjectId() async {
+    final projects = await getProjects();
+    // Номер нового проєкту = кількість існуючих + 1
+    return projects.length + 1;
+  }
+
+  // Атомарно виділяє наступний ID (інкрементує лічильник і повертає значення)
+  static Future<int> allocateNextProjectId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final projects = await getProjects();
+    final baseNext = projects.length + 1;
+    // Синхронізуємо службовий лічильник під відображувану логіку (не критично)
+    await prefs.setInt(_nextIdKey, baseNext + 1);
+    return baseNext;
+  }
+
   static Future<void> resetNextProjectId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_nextIdKey);
