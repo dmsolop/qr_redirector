@@ -1,4 +1,4 @@
-package com.example.qr_redirector
+package ua.dmtsol.qrredirector
 
 import android.content.Intent
 import android.net.Uri

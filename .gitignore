@@ -43,6 +43,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing
+/android/key.properties
+/android/app/upload-keystore.jks
+/android/app/*.keystore
+
 # iOS related
 **/ios/**/*.mode1v3
 **/ios/**/*.mode2v3

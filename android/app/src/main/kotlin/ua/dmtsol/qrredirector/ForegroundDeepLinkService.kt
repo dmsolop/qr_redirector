@@ -1,4 +1,4 @@
-package com.example.qr_redirector
+package ua.dmtsol.qrredirector
 
 import android.app.Notification
 import android.app.NotificationChannel

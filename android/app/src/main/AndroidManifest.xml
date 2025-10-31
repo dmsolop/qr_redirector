@@ -9,7 +9,6 @@
     
     <!-- Дозволи для url_launcher -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     
     <application
         android:label="qr_redirector"

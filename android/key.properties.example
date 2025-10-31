@@ -1,0 +1,18 @@
+# Приклад файлу key.properties для Google Play App Signing
+# 
+# Інструкція:
+# 1. Скопіюйте цей файл: cp android/key.properties.example apples/android/key.properties
+# 2. Створіть upload keystore для Google Play App Signing:
+#    keytool -genkey -v -keystore android/app/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+# 3. Заповніть значення нижче згенерованими даними
+#
+# Для Google Play App Signing:
+# - Це upload key, який використовується ТІЛЬКИ для завантаження на Play Console
+# - Google Play створить свій app signing key автоматично після першої загрузки
+# - Зберігайте upload keystore в БЕЗПЕЧНОМУ місці - він потрібен для всіх наступних загрузок
+#
+storePassword=your_keystore_password
+keyPassword=your_key_password
+keyAlias=upload
+storeFile=app/upload-keystore.jks
+
