@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - QR Redirector</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .last-updated { color: #7f8c8d; font-style: italic; }
+        .contact { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Privacy Policy</h1>
+    <p class="last-updated"><strong>Last updated:</strong> October 31, 2025</p>
+
+    <h2>Developer Information</h2>
+    <p><strong>Developer:</strong> Dmytro Solop<br>
+    <strong>Contact:</strong> [Ваш email]<br>
+    <strong>Application:</strong> QR Redirector (ua.dmtsol.qrredirector)</p>
+
+    <h2>Overview</h2>
+    <p>QR Redirector is a utility application that processes QR codes containing deep links and redirects them to configured URLs in your web browser. This privacy policy explains how the application handles your data.</p>
+
+    <h2>Data Collection and Storage</h2>
+    <p><strong>No Data Collection:</strong> QR Redirector does not collect, store, or transmit any personal data to external servers or third parties.</p>
+    <p><strong>Local Storage Only:</strong> All application data, including project configurations, settings, and preferences, is stored exclusively on your device using Android's SharedPreferences. This data never leaves your device.</p>
+
+    <h2>Permissions Used</h2>
+    <p>The application requests the following permissions for its core functionality:</p>
+    <ul>
+        <li><strong>INTERNET:</strong> Required to open URLs in your web browser after QR code processing.</li>
+        <li><strong>FOREGROUND_SERVICE:</strong> Allows the application to run a background service that listens for deep link intents.</li>
+        <li><strong>WAKE_LOCK:</strong> Ensures the background service operates reliably when processing QR codes.</li>
+        <li><strong>USE_BIOMETRIC / USE_FINGERPRINT:</strong> Used exclusively for local device owner verification when accessing application settings. Biometric data is processed entirely by your device's operating system.</li>
+    </ul>
+
+    <h2>Biometric Authentication</h2>
+    <p>QR Redirector uses your device's biometric authentication only to verify that you are the device owner before allowing access to application settings. All biometric processing is handled by your device's operating system. The application does not access, store, or transmit biometric data.</p>
+
+    <h2>Deep Links</h2>
+    <p>The application processes deep links with the custom scheme <code>reich://</code>. These links are processed locally on your device and redirected to configured URLs in your web browser. No information about scanned QR codes or deep links is collected or transmitted.</p>
+
+    <h2>Data Sharing</h2>
+    <p>QR Redirector does not share any data with third parties, analytics services, advertising networks, or any external services.</p>
+
+    <h2>Data Deletion</h2>
+    <p>All data stored by QR Redirector is stored locally on your device. To delete all application data, simply uninstall the application from your device. All locally stored preferences and configurations will be removed with the application.</p>
+
+    <h2>Children's Privacy</h2>
+    <p>QR Redirector does not knowingly collect any information from children under 13. The application does not collect any information from anyone.</p>
+
+    <h2>Changes to This Privacy Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last updated" date.</p>
+
+    <div class="contact">
+        <h2>Contact Us</h2>
+        <p>If you have any questions about this Privacy Policy, please contact us at: <strong>[Ваш email]</strong></p>
+    </div>
+
+    <hr>
+    <p><em>Note: This privacy policy applies to QR Redirector version 1.0.0 and later.</em></p>
+</body>
+</html>
+
