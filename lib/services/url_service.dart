@@ -76,7 +76,12 @@ class URLService {
       }
 
       RegExp regex = RegExp(project.regex);
+      // Дозволяємо тестувати без вказання схеми: спочатку повний рядок, потім хвіст без схеми
       Match? match = regex.firstMatch(testQrData);
+      if (match == null && testQrData.startsWith('reich://')) {
+        final tail = testQrData.substring('reich://'.length);
+        match = regex.firstMatch(tail);
+      }
 
       if (match != null) {
         String key = match.group(match.groupCount)!; // Остання група = ключ

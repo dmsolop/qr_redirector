@@ -221,6 +221,8 @@ class MainActivity: FlutterFragmentActivity() {
         android.util.Log.d("MainActivity", "Кількість правил: ${rules.size}")
         
         val validMatches = mutableListOf<MatchInfo>()
+        // Працюємо як з повним лінком, так і з тілом без схеми
+        val tailLink = if (deepLink.startsWith("reich://")) deepLink.substring("reich://".length) else deepLink
         
         for (rule in rules) {
             try {
@@ -231,7 +233,13 @@ class MainActivity: FlutterFragmentActivity() {
                 android.util.Log.d("MainActivity", "Regex original='${rule.regex}', normalized='${normalizedRegex}'")
 
                 val pattern = Regex(normalizedRegex)
-                val allMatches = pattern.findAll(deepLink).toList()
+                var allMatches = pattern.findAll(deepLink).toList()
+                if (allMatches.size != 1) {
+                    allMatches = pattern.findAll(tailLink).toList()
+                    if (allMatches.isNotEmpty()) {
+                        android.util.Log.d("MainActivity", "Regex '${rule.regex}': використано матч по тілу без схеми")
+                    }
+                }
                 
                 android.util.Log.d("MainActivity", "Regex '${rule.regex}': знайдено ${allMatches.size} співпадінь")
                 

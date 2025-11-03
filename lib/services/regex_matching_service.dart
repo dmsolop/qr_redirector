@@ -40,12 +40,23 @@ class RegexMatchingService {
 
     final validMatches = <MatchResult>[];
 
+    // Дозволяємо regex працювати як з повним лінком, так і з "хвостом" без схеми
+    final String tailLink = deepLink.startsWith('reich://')
+        ? deepLink.substring('reich://'.length)
+        : deepLink;
+
     for (final project in projects) {
       try {
         final regex = RegExp(project.regex);
 
-        // Використовуємо allMatches для перевірки кількості співпадінь
-        final allMatches = regex.allMatches(deepLink).toList();
+        // Спершу пробуємо повний лінк, якщо немає рівно одного співпадіння — пробуємо хвіст
+        List<RegExpMatch> allMatches = regex.allMatches(deepLink).toList();
+        if (allMatches.length != 1) {
+          allMatches = regex.allMatches(tailLink).toList();
+          if (allMatches.isNotEmpty) {
+            developer.log('[RegexMatching] Проєкт "${project.name}": використано матч по тілу без схеми');
+          }
+        }
 
         developer.log('[RegexMatching] Проєкт "${project.name}": regex="${project.regex}", співпадінь=${allMatches.length}');
 
@@ -72,7 +83,9 @@ class RegexMatchingService {
         final finalUrl = project.urlTemplate.replaceAll('{key}', key);
 
         // Визначаємо чи це повне співпадіння
-        final isFullMatch = match.start == 0 && match.end == deepLink.length;
+        // Визначаємо повне співпадіння відносно того рядка, де був знайдений матч
+        final source = (regex.allMatches(deepLink).toList().contains(match)) ? deepLink : tailLink;
+        final isFullMatch = match.start == 0 && match.end == source.length;
         final matchLength = match.end - match.start;
         final groupCount = groups.length - 1; // Виключаємо повне співпадіння
 
