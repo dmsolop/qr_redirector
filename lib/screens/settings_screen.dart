@@ -159,11 +159,11 @@ class _SettingsScreenState extends State<SettingsScreen> with RouteAware {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('QR Редіректор'),
+                            title: const Text('LinkFlow'),
                             content: const Text(
-                              'Простий додаток для редірекції QR кодів.\n\n'
-                              'Скануйте QR коди з схемою reich:// і автоматично '
-                              'відкривайте потрібні URL.',
+                              'Простий додаток для перенаправлення deep links.\n\n'
+                              'Обробляє посилання зі схемою reich:// і автоматично '
+                              'відкриває потрібні URL у браузері.',
                             ),
                             actions: [
                               TextButton(

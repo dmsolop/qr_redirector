@@ -26,7 +26,7 @@ class QRRedirectorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'QR Редіректор',
+      title: 'LinkFlow',
       navigatorKey: navigatorKey,
       navigatorObservers: [routeObserver],
       theme: ThemeData(
@@ -315,7 +315,7 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'QR Редіректор',
+                          'LinkFlow',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -432,7 +432,7 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'QR Редіректор',
+                        'LinkFlow',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,

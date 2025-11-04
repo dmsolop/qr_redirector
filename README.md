@@ -1,6 +1,6 @@
-# qr_redirector
+# LinkFlow
 
-A new Flutter project.
+Utility application for processing deep links and redirecting them to configured URLs.
 
 ## Getting Started
 

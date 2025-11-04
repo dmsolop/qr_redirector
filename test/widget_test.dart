@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:qr_redirector/main.dart';
+import 'package:linkflow/main.dart';
 
 void main() {
   testWidgets('App initializes correctly', (WidgetTester tester) async {

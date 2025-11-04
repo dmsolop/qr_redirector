@@ -6,15 +6,15 @@
 
 **Developer:** Dmytro Solop  
 **Contact:** dmtsolop@gmail.com 
-**Application:** QR Redirector (ua.dmtsol.qrredirector)
+**Application:** LinkFlow (ua.dmtsol.qrredirector)
 
 ## Overview
 
-QR Redirector is a utility application that processes QR codes containing deep links and redirects them to configured URLs in your web browser. This privacy policy explains how the application handles your data.
+LinkFlow is a utility application that processes deep links and redirects them to configured URLs in your web browser. This privacy policy explains how the application handles your data.
 
 ## Data Collection and Storage
 
-**No Data Collection:** QR Redirector does not collect, store, or transmit any personal data to external servers or third parties.
+**No Data Collection:** LinkFlow does not collect, store, or transmit any personal data to external servers or third parties.
 
 **Local Storage Only:** All application data, including:
 - Project configurations (regex patterns, URL templates)
@@ -34,7 +34,7 @@ The application requests the following permissions for its core functionality:
 
 ## Biometric Authentication
 
-QR Redirector uses your device's biometric authentication (Face ID, Touch ID, or device password) only to verify that you are the device owner before allowing access to application settings. All biometric processing is handled by your device's operating system. The application does not:
+LinkFlow uses your device's biometric authentication (Face ID, Touch ID, or device password) only to verify that you are the device owner before allowing access to application settings. All biometric processing is handled by your device's operating system. The application does not:
 - Access your biometric data
 - Store biometric information
 - Transmit biometric data to any external service
@@ -45,18 +45,18 @@ The application processes deep links with the custom scheme `reich://`. These li
 
 ## Data Sharing
 
-QR Redirector does not share any data with third parties, analytics services, advertising networks, or any external services.
+LinkFlow does not share any data with third parties, analytics services, advertising networks, or any external services.
 
 ## Data Deletion
 
-All data stored by QR Redirector is stored locally on your device. To delete all application data:
+All data stored by LinkFlow is stored locally on your device. To delete all application data:
 1. Uninstall the application from your device
 
 All locally stored preferences and configurations will be removed with the application.
 
 ## Children's Privacy
 
-QR Redirector does not knowingly collect any information from children under 13. The application does not collect any information from anyone.
+LinkFlow does not knowingly collect any information from children under 13. The application does not collect any information from anyone.
 
 ## Changes to This Privacy Policy
 
@@ -68,5 +68,5 @@ If you have any questions about this Privacy Policy, please contact us at: [Ва
 
 ---
 
-**Note:** This privacy policy applies to QR Redirector version 1.0.0 and later.
+**Note:** This privacy policy applies to LinkFlow version 1.0.0 and later.
 

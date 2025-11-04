@@ -1,10 +1,10 @@
-# ІНСТРУКЦІЯ КОРИСТУВАЧА — QR Redirector (актуально)
+# ІНСТРУКЦІЯ КОРИСТУВАЧА — LinkFlow (актуально)
 
 ## Встановлення
 
 ### З Google Play Store
 - Відкрийте Google Play Store
-- Знайдіть "QR Redirector"
+- Знайдіть "LinkFlow"
 - Натисніть "Встановити"
 
 ### З APK файлу

@@ -18,7 +18,7 @@ import org.json.JSONObject
 class ForegroundDeepLinkService : Service() {
     companion object {
         private const val CHANNEL_ID = "qr_redirector_fg_channel"
-        private const val CHANNEL_NAME = "QR Redirector Background"
+        private const val CHANNEL_NAME = "LinkFlow Background"
         private const val NOTIFICATION_ID = 1001
         
         private var methodChannel: MethodChannel? = null
@@ -63,8 +63,8 @@ class ForegroundDeepLinkService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("QR Redirector")
-            .setContentText("Працює у фоні та обробляє QR діплінки")
+            .setContentTitle("LinkFlow")
+            .setContentText("Працює у фоні та обробляє deep links")
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
