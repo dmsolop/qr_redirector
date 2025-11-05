@@ -103,7 +103,7 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> with RouteAware {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Regex не співпадає з тестовим QR кодом')),
+          const SnackBar(content: Text('Regex не співпадає з тестовим значенням')),
         );
       }
     } catch (e) {
@@ -216,9 +216,10 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> with RouteAware {
             TextField(
               controller: _testController,
               decoration: const InputDecoration(
-                labelText: 'Тестовий QR код',
+                labelText: 'Deep link для тестування',
                 hintText: 'reich://1234',
                 border: OutlineInputBorder(),
+                helperText: 'Введіть deep link для перевірки regex правила',
               ),
             ),
             const SizedBox(height: 16),
