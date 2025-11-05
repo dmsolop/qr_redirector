@@ -163,6 +163,7 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> with RouteAware {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(widget.project.id == 0 ? 'Новий проєкт' : 'Редагування проєкту'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -173,7 +174,7 @@ class _ProjectEditScreenState extends State<ProjectEditScreen> with RouteAware {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
